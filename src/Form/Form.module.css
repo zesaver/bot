@@ -1,0 +1,64 @@
+.revervePlaceText {
+  text-align: center;
+  position: relative;
+  height: 45px;
+  font-family: var(--mainFont);
+  font-size: 18px;
+  font-weight: 400;
+}
+.closeModalButton {
+  position: absolute;
+  top: -50px;
+  right: 10%;
+  border: none;
+  background-color: transparent;
+  color: #000;
+  font-family: var(--mainFont);
+  font-size: 30px;
+}
+.successMail {
+  text-align: center;
+  /* font-family: var(--mainFont); */
+  font-family: var(--decorativeFont);
+
+  color: #1fd256;
+  font-size: 30px;
+  font-weight: 900;
+}
+.from {
+  display: flex;
+  flex-direction: column;
+
+  margin: auto;
+}
+.formGroup {
+  width: 80%;
+  margin: auto;
+  padding: 5px 10px;
+  margin-bottom: 20px;
+  border: 1px solid black;
+  font-family: var(--decorativeFont);
+
+  font-size: 18px;
+  font-weight: 400;
+}
+.textarea {
+  opacity: 0;
+  font-family: var(--mainFont);
+  /* 
+  min-height: 250px; */
+}
+.button {
+  font-family: var(--decorativeFont);
+
+  font-size: 18px;
+  font-weight: 400;
+  border: none;
+  color: #fff;
+  background-color: rgba(0, 255, 50, 0.5);
+}
+
+@media screen and (min-width: 768px) {
+}
+@media screen and (min-width: 1280px) {
+}
