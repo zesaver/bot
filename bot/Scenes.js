@@ -2,6 +2,8 @@ const fetch = require("node-fetch");
 const FormData = require("form-data");
 const CryptoJS = require("crypto-js");
 const moment = require("moment");
+const { bot } = require("./initBot");
+
 const { commands } = require("./commands");
 const {
   merchant_id,
@@ -9,6 +11,9 @@ const {
   callbackUrlStatusOrder,
 } = require("../config");
 const billLibrary = require("./bill");
+const { findLastBill } = require("./mongodb/mongoAction");
+const { writeData } = require("./google-sheets");
+
 const {
   getChatidAndUserId,
 } = require("../server/controllers/getstatusbillController");
@@ -23,6 +28,37 @@ const {
 } = require("./mongodb/mongoAction");
 
 class SceneGenerator {
+  isPaymentarchiveScene() {
+    const isPaymentarchive = new Scene("isPaymentarchive");
+    isPaymentarchive.enter((ctx) => {
+      findLastBill(ctx.from.id).then((billArry) => {
+        if (billArry.length === 0) {
+          ctx.reply("Успiшних платежiв немає");
+          return;
+        }
+
+        const html = billArry
+          .map((el) => {
+            return `<b>Отримувач:</b> ${el.city} 
+<b>Сума:</b> ${el.price} 
+<b>Дата платежу:</b> ${el.date}
+<b>Постанова:</b> ${el.fine}
+<i>Замовити квитанцiю:</i> /download${el.countId}`;
+          })
+          .join("\n \n");
+        ctx.replyWithHTML(html);
+
+        for (let bill of billArry) {
+          bot.hears(`/download${bill.countId}`, async (ctx) => {
+            writeData(bill);
+            ctx.reply("Квитанцiя в обробцi");
+          });
+        }
+      });
+    });
+    return isPaymentarchive;
+  }
+
   isAuthScene() {
     const isAuth = new Scene("isAuth");
     isAuth.enter((ctx) => {
@@ -49,7 +85,24 @@ class SceneGenerator {
     authName.on("text", (ctx) => {
       const isEnterCommand = commands.some((el) => el === ctx.message.text);
       if (isEnterCommand) {
-        ctx.scene.reenter();
+        switch (ctx.message.text) {
+          case "/start":
+            ctx.scene.leave();
+            ctx.scene.enter("isAuth");
+            break;
+          case "/payfine":
+            ctx.scene.leave();
+            ctx.scene.enter("authCity");
+            break;
+          case "/paymentarchive":
+            ctx.scene.leave();
+            ctx.scene.enter("isPaymentarchive");
+            break;
+          case "/changename":
+            ctx.scene.leave();
+            ctx.scene.enter("authName");
+            break;
+        }
       } else {
         findUserAndUpdate({ idUser: ctx.from.id }, { name: ctx.message.text });
         ctx.reply(`Вiтаю ${ctx.message.text}`);
@@ -107,12 +160,29 @@ class SceneGenerator {
   addFineScene() {
     const addFine = new Scene("addFine");
     addFine.enter((ctx) => {
-      ctx.reply("Введіть серію та номер протоколу");
+      ctx.reply("Введіть серію та номер постанови");
     });
     addFine.on("text", (ctx) => {
       const isEnterCommand = commands.some((el) => el === ctx.message.text);
       if (isEnterCommand) {
-        ctx.scene.reenter();
+        switch (ctx.message.text) {
+          case "/start":
+            ctx.scene.leave();
+            ctx.scene.enter("isAuth");
+            break;
+          case "/payfine":
+            ctx.scene.leave();
+            ctx.scene.enter("authCity");
+            break;
+          case "/paymentarchive":
+            ctx.scene.leave();
+            ctx.scene.enter("isPaymentarchive");
+            break;
+          case "/changename":
+            ctx.scene.leave();
+            ctx.scene.enter("authName");
+            break;
+        }
       } else {
         ctx.scene.state.fine = ctx.message.text;
         ctx.scene.leave();
@@ -128,14 +198,36 @@ class SceneGenerator {
       ctx.reply("Введіть суму штрафу");
     });
     addFineAmount.on("text", async (ctx) => {
-      const currAmount = Number(ctx.message.text);
-      if (currAmount) {
-        ctx.scene.state.fineAmount = ctx.message.text;
-        ctx.scene.leave();
-        ctx.scene.enter("chechAll", ctx.scene.state);
+      const isEnterCommand = commands.some((el) => el === ctx.message.text);
+      if (isEnterCommand) {
+        switch (ctx.message.text) {
+          case "/start":
+            ctx.scene.leave();
+            ctx.scene.enter("isAuth");
+            break;
+          case "/payfine":
+            ctx.scene.leave();
+            ctx.scene.enter("authCity");
+            break;
+          case "/paymentarchive":
+            ctx.scene.leave();
+            ctx.scene.enter("isPaymentarchive");
+            break;
+          case "/changename":
+            ctx.scene.leave();
+            ctx.scene.enter("authName");
+            break;
+        }
       } else {
-        await ctx.reply("Букви не приймаються");
-        ctx.scene.reenter();
+        const currAmount = Number(ctx.message.text);
+        if (currAmount) {
+          ctx.scene.state.fineAmount = ctx.message.text;
+          ctx.scene.leave();
+          ctx.scene.enter("chechAll", ctx.scene.state);
+        } else {
+          await ctx.reply("Букви не приймаються");
+          ctx.scene.reenter();
+        }
       }
     });
 
@@ -176,7 +268,7 @@ class SceneGenerator {
             let html = `Перевірте введені реквізити: \n
 ПIБ: <b>${userName} </b>\n
 Отримувач: <b>${ctx.scene.state.beneficiaryName} </b>\n
-Серія та номер протоколу: <b>${ctx.scene.state.fine}</b>\n
+Серія та номер постанови: <b>${ctx.scene.state.fine}</b>\n
 IBAN: ${ctx.scene.state.bill} \n
 ЄДРПОУ: ${ctx.scene.state.OKPO} \n
 Сума: <b>${ctx.scene.state.fineAmount} грн </b>\n`;
