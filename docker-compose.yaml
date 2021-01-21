@@ -1,0 +1,21 @@
+version: '3'
+services:
+  node_parkingbot:
+    container_name: node_parkingbot
+    build: bot/
+    volumes:
+     - ./bot/:/app/bot
+     - ./config.js:/app/bot/config.js
+     - /app/node_modules
+    working_dir: /app/bot
+    ports:
+     - 3000:3000
+    links:
+     - mongodb_parkingbot
+    command: npm start
+
+  mongodb_parkingbot:
+    container_name: mongodb_parkingbot
+    build: mongodb/
+    ports:
+     - 27017:27017
