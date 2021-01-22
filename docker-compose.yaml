@@ -5,7 +5,6 @@ services:
     build: bot/
     volumes:
      - ./bot/:/app/bot
-     - ./config.js:/app/bot/config.js
      - /app/node_modules
     working_dir: /app/bot
     ports:

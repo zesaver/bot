@@ -4,7 +4,7 @@ ParkingFinesBot
 Installation
 ------------
 
-###Docker installation:
+### Docker installation:
 
 This is the recommended way of installation and execution of the bot.
 
@@ -16,7 +16,7 @@ Then execute in the git's root folder:
 docker-compose up
 ```
 
-###Manual installation
+### Manual installation
 
 **Pre-requisites**:
 
@@ -46,19 +46,3 @@ node server/index.js
 ```
 
 or `npm start`.
-
-Testing
--------
-
-**For tests**:
-
-Execute the command below:
-
-```
-mvn -f ./API/BotAPIAutoTests/pom.xml clean install -Dmaven.test.skip=false -Dapi.host="quilcode.com" -Dapi.port="8087" -Ddb.port="8688" -Dapi.host.full="http://quilcode.com:8087"
-```
-
-ToDo
-----
-
-- Test results to Gitlab Pages
