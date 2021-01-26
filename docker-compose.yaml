@@ -13,8 +13,8 @@ services:
      - mongodb_parkingbot
     command: npm start
 
-  mongodb_parkingbot:
-    container_name: mongodb_parkingbot
-    build: mongodb/
-    ports:
-     - 27017:27017
+  # mongodb_parkingbot:
+  #   container_name: mongodb_parkingbot
+  #   build: mongodb/
+  #   ports:
+  #    - 27017:27017
